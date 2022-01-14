@@ -1,1 +1,22 @@
-<p>contact-list works!</p>
+<div class="row panel panel-default contact-list-panel">
+    <div class="col-sm-12 panel-heading">
+        <div class="col-sm-8">
+            <h3 class="panel-title">Contacts</h3>
+        </div>
+        <div class="col-sm-4">
+            <a href="#" class="btn btn-success " role="button">New Contact</a>
+        </div>
+
+    </div>
+    <div class="panel-body col-sm-12" *ngFor="let contact of contacts">
+        <div class="panel panel-default">
+            <div class="col-sm-9">
+            {{contact.name}}
+            </div>
+            <div class="col-sm-3">
+            <img class="img-responsive clearfix contact-images"src="{{contact.imageURL}}" alt="Image of {{contact.name}}">
+            </div>
+        </div>
+
+    </div>
+</div>
