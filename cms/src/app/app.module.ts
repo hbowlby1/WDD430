@@ -17,6 +17,7 @@ import { MessageListComponent } from './messages/message-list/message-list.compo
 //to stop the page from reloading when submitting a message
 //Thank you Nathan Ricks
 import { FormsModule } from '@angular/forms';
+import { DropdownDirective } from './shared/dropdown.directive';
 
 @NgModule({
   declarations: [
@@ -32,7 +33,8 @@ import { FormsModule } from '@angular/forms';
     DocumentDetailComponent,
     MessageItemComponent,
     MessageEditComponent,
-    MessageListComponent
+    MessageListComponent,
+    DropdownDirective
   ],
   imports: [
     BrowserModule,
