@@ -11,5 +11,6 @@
     <cms-contact-item 
     *ngFor="let contactEl of contacts"
     [contact]="contactEl"
-    (click)="onSelected(contactEl)"></cms-contact-item>
+    [routerLink]="contactEl.id"
+    [routerLinkActive]="['active']"></cms-contact-item>
 </div>

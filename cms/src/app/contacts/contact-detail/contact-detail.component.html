@@ -5,8 +5,9 @@
             <img class="img-responsive" src="{{contact.imageUrl}}" alt="Image of {{contact.name}}">
         </div>
         <div class="contact-detail-btns">
-            <a href="#" role="button" class="btn btn-primary">Edit</a>
-            <a href="#" role="button" class="btn btn-danger">Delete</a>
+            <a role="button" class="btn btn-primary" [routerLink]="['edit']">Edit</a>
+            <a role="button" class="btn btn-danger"
+            (click)="onDelete()">Delete</a>
         </div>
     </div>
     <div class="panel-body">
