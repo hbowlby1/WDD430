@@ -5,14 +5,15 @@ import { MessageService } from '../message.service';
 @Component({
   selector: 'cms-message-edit',
   templateUrl: './message-edit.component.html',
-  styleUrls: ['./message-edit.component.css']
+  styleUrls: ['./message-edit.component.css'],
+  providers: [MessageService]
 })
 export class MessageEditComponent implements OnInit {
 
   @ViewChild('subject', {static: false}) subjectRef: ElementRef;
   @ViewChild('msgText', {static:false}) msgTextRef: ElementRef;
 
-  @Output() addMessageEvent = new EventEmitter<Message>();
+  //@Output() addMessageEvent = new EventEmitter<Message>();
   
   currentSender: string = "Harrison Bowlby";
 

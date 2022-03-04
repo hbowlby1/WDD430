@@ -8,6 +8,7 @@ import { MessageService } from '../message.service';
   styleUrls: ['./message-list.component.css']
 })
 export class MessageListComponent implements OnInit {
+  @Input('sent_message') element!: Message;
   messages: Message[] = [];
   constructor(private messageService: MessageService) { }
 
@@ -19,6 +20,6 @@ export class MessageListComponent implements OnInit {
   }
 
   onAddMessage(message: Message){
-    // this.messageService.contactSelectedEvent.emit(message);
+    this.messages.push(message);
   }
 }

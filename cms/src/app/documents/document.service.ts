@@ -24,7 +24,6 @@ export class DocumentService {
     this.http.get<Document[]>('https://wdd430-cms-project-default-rtdb.firebaseio.com/documents.json').subscribe(
       (documents: Document[]) => {
         this.documents = documents;
-        console.log(documents);
         this.maxDocId = this.getMaxId();
 
         this.documents.sort(function (a, b) {

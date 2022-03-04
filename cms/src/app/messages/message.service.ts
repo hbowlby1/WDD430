@@ -15,19 +15,25 @@ export class MessageService {
     // this.messages = MOCKMESSAGES;
   }
 
-  public storeMessages(messages: Message[]) {
+  public storeMessages() {
+    let messages = JSON.stringify(this.messages);
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
 
-    let data = JSON.stringify(this.messages);
-    let httpHeader: HttpHeaders = new HttpHeaders();
-    httpHeader.set('Content-Type', 'application/json');
+    this.http.put('https://wdd430-cms-project-default-rtdb.firebaseio.com/messages.json', messages, {headers: headers})
+    .subscribe(() => {
+      this.messagesChangedEvent.next(this.messages.slice());
+    })
+    // let data = JSON.stringify(this.messages);
+    // let httpHeader: HttpHeaders = new HttpHeaders();
+    // httpHeader.set('Content-Type', 'application/json');
 
-    this.http.put('https://wdd430-cms-project-default-rtdb.firebaseio.com/messages.json', data, { 'headers': httpHeader })
-      .subscribe(() => {
-        let messagesListClone = this.messages.slice();
-        this.messageListChangedEvent.next(messagesListClone);
+    // this.http.put('https://wdd430-cms-project-default-rtdb.firebaseio.com/messages.json', data, { 'headers': httpHeader })
+    //   .subscribe(() => {
+    //     let messagesListClone = this.messages.slice();
+    //     this.messageListChangedEvent.next(messagesListClone);
       }
-      );
-  }
 
   getMaxId(): number {
     let maxId = 0;
@@ -70,54 +76,25 @@ export class MessageService {
       if (message.id === id) {
         return message;
       }
+      console.log(message);
     }
     return null;
   }
 
   addMessage(newMessage: Message) {
-    if ((newMessage === undefined) || (newMessage === null)) {
-      return;
-    } else {
-      this.maxMessageId++;
+    // if ((newMessage === undefined) || (newMessage === null)) {
+    //   return;
+    // } else {
+    //   this.maxMessageId++;
 
-      newMessage.id = this.maxMessageId.toString();
-      this.messages.push(newMessage);
+    //   newMessage.id = this.maxMessageId.toString();
+    //   this.messages.push(newMessage);
 
-      let MessagesListCopy = this.messages.slice();
-      this.storeMessages(MessagesListCopy);
+    //   let MessagesListCopy = this.messages.slice();
+    //   this.storeMessages(MessagesListCopy);
+    this.messages.push(newMessage);
+    this.storeMessages();
     }
-  }
-
-  updateMessage(originalMessage: Message, newMessage: Message) {
-    if ((!originalMessage) || (!newMessage)) {
-      return;
-    } else {
-
-      const pos = this.messages.indexOf(originalMessage);
-      if (pos < 0) {
-        return;
-      }
-      newMessage.id = originalMessage.id
-      this.messages[pos] = newMessage;
-
-      let MessagesListCopy = this.messages.slice();
-      this.storeMessages(MessagesListCopy);
-    }
-  }
-
-  deleteMessage(message: Message) {
-    if (!message) {
-      return;
-    }
-
-    const pos = this.messages.indexOf(message);
-    if (pos < 0)
-      return;
-
-    this.messages.splice(pos, 1);
-    let MessagesListCopy = this.messages.slice();
-    this.storeMessages(MessagesListCopy);
-  }
 
 
 }

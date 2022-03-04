@@ -45,7 +45,10 @@ export class ContactService {
     return this.contacts.slice();
   }
 
-  getContact(id: string) {
+  getContact(id: string): Contact | null {
+    if(!this.contacts){
+      return null;
+    }
     for (const contact of this.contacts) {
       if (contact.id === id) {
         return contact;
