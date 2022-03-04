@@ -16,16 +16,23 @@ export class ContactService {
   pos: number;
 
 
-  constructor(private http: HttpClient) { 
-    http.get<Contact[]>('https://wdd430-cms-project-default-rtdb.firebaseio.com/contacts.json').subscribe(
+  constructor(private http: HttpClient) {
+
+
+    // this.contacts = MOCKCONTACTS;
+    // this.maxContactId = this.getMaxContactId();
+  }
+
+  getContacts(): Contact[] {
+    this.http.get<Contact[]>('https://wdd430-cms-project-default-rtdb.firebaseio.com/contacts.json').subscribe(
       (contacts: Contact[]) => {
         this.contacts = contacts;
         this.maxContactId = this.getMaxContactId();
-        
+
         this.contacts.sort(function (a, b) {
-          if (a.name < b.name) {return -1}
-          else if (a.name > b.name) {return 1}
-          else {return 0}
+          if (a.name < b.name) { return -1 }
+          else if (a.name > b.name) { return 1 }
+          else { return 0 }
         });
 
         let contactListCopy = this.contacts.slice();
@@ -34,14 +41,7 @@ export class ContactService {
       (error: any) => {
         console.log(error);
       }
-
     )
-    
-    // this.contacts = MOCKCONTACTS;
-    // this.maxContactId = this.getMaxContactId();
-  }
-
-  getContacts(): Contact[]{
     return this.contacts.slice();
   }
 
@@ -69,22 +69,22 @@ export class ContactService {
     return this.maxContactId;
   }
 
-  storeContacts(contacts: Contact[]){
+  storeContacts(contacts: Contact[]) {
     let getList = JSON.stringify(this.contacts);
     let httpHeaders: HttpHeaders = new HttpHeaders();
     httpHeaders.set('Content-Type', 'application/json');
 
     this.http.put(
       'https://wdd430-cms-project-default-rtdb.firebaseio.com/contacts.json',
-      getList, {'headers': httpHeaders}
+      getList, { 'headers': httpHeaders }
     ).subscribe(() => {
       let contactsCopy = this.contacts.slice();
       this.contactListChangedEvent.next(contactsCopy);
     })
   }
 
-  addContact(newContact: Contact){
-    if(!newContact){
+  addContact(newContact: Contact) {
+    if (!newContact) {
       return;
     }
     this.maxContactId++;
@@ -95,12 +95,12 @@ export class ContactService {
     this.storeContacts(contactsCopy);
   }
 
-  updateContact(originalContact: Contact, newContact: Contact){
-    if(!originalContact || !newContact){
+  updateContact(originalContact: Contact, newContact: Contact) {
+    if (!originalContact || !newContact) {
       return;
     }
     this.pos = this.contacts.indexOf(originalContact);
-    if(this.pos < 0){
+    if (this.pos < 0) {
       return;
     }
 
@@ -110,12 +110,12 @@ export class ContactService {
     this.storeContacts(contactsCopy);
   }
 
-  deleteContact(contact: Contact){
-    if(!contact){
+  deleteContact(contact: Contact) {
+    if (!contact) {
       return;
     }
     const pos = this.contacts.indexOf(contact);
-    if(pos < 0) {
+    if (pos < 0) {
       return;
     }
     this.contacts.splice(pos, 1);

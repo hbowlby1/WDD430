@@ -11,24 +11,8 @@ export class MessageService {
   messageListChangedEvent = new Subject<Message[]>();
   messages: Message[] = [];
   maxMessageId: number;
-
   constructor(private http: HttpClient) {
     // this.messages = MOCKMESSAGES;
-    http.get<Message[]>('https://wdd430-cms-project-default-rtdb.firebaseio.com/messages.json').subscribe(
-      (messages: Message[]) => {
-        this.messages = messages;
-        this.maxMessageId = this.getMaxId();
-
-        this.messages.sort(function (a, b) {
-          if (a.id < b.id) { return -1 }
-          else if (a.id > b.id) { return 1 }
-          else { return 0; }
-        });
-      },
-      (error: any) => {
-        console.log(error);
-      }
-    )
   }
 
   public storeMessages(messages: Message[]) {
@@ -48,8 +32,9 @@ export class MessageService {
   getMaxId(): number {
     let maxId = 0;
 
-    for (let mes of this.messages) {
-      let currentId = parseInt(mes.id);
+    for (let i = 0; i < this.messages.length; i++) {
+      const message = this.messages[i];
+      let currentId = parseInt(message.id);
       if (currentId > maxId) {
         maxId = currentId;
       }
@@ -58,11 +43,26 @@ export class MessageService {
   }
 
   getMessages(): Message[] {
+    this.http.get<Message[]>('https://wdd430-cms-project-default-rtdb.firebaseio.com/messages.json').subscribe(
+      (messages: Message[]) => {
+        this.messages = messages;
+        console.log(this.messages)
+        this.maxMessageId = this.getMaxId();
+        this.messages.sort(function (a, b) {
+          if (a.id < b.id) { return -1 }
+          else if (a.id > b.id) { return 1 }
+          else { return 0; }
+        });
+      },
+      (error: any) => {
+        console.log(error);
+      }
+    )
     return this.messages.slice();
   }
 
   getMessage(id: string): Message | null {
-    if(!this.messages) {
+    if (!this.messages) {
       return null;
     }
 
@@ -89,7 +89,7 @@ export class MessageService {
   }
 
   updateMessage(originalMessage: Message, newMessage: Message) {
-    if((!originalMessage) || (!newMessage)) {
+    if ((!originalMessage) || (!newMessage)) {
       return;
     } else {
 

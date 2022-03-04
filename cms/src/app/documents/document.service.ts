@@ -17,15 +17,20 @@ export class DocumentService {
 
   constructor(private http: HttpClient) {
 
-    http.get<Document[]>('https://wdd430-cms-project-default-rtdb.firebaseio.com/documents.json').subscribe(
+  }
+
+  //gets the document array from Mockdocs and saves it to a new array
+  getDocuments(): Document[] {
+    this.http.get<Document[]>('https://wdd430-cms-project-default-rtdb.firebaseio.com/documents.json').subscribe(
       (documents: Document[]) => {
         this.documents = documents;
+        console.log(documents);
         this.maxDocId = this.getMaxId();
 
-        this.documents.sort(function (a,b) {
-          if(a.name < b.name) {return -1}
-          else if (a.name > b.name) {return 1}
-          else {return 0}
+        this.documents.sort(function (a, b) {
+          if (a.name < b.name) { return -1 }
+          else if (a.name > b.name) { return 1 }
+          else { return 0 }
         });
 
         let documentsListCopy = this.documents.slice();
@@ -35,10 +40,6 @@ export class DocumentService {
         console.log(error);
       }
     );
-   }
-
-  //gets the document array from Mockdocs and saves it to a new array
-  getDocuments(): Document[]{
     return this.documents.slice();
   }
 
@@ -50,21 +51,21 @@ export class DocumentService {
     }
     return null;
   }
-  
-  getMaxId(): number{
+
+  getMaxId(): number {
     this.maxDocId = 0;
-    
+
     for (let i = 0; i < this.documents.length; i++) {
       const document = this.documents[i];
       this.currentDocId = +document.id;
-      
+
       if (this.currentDocId > this.maxDocId) {
         this.maxDocId = this.currentDocId
       }
       return this.maxDocId;
     }
   }
-  
+
   storeDocuments(documents: Document[]) {
     let getList = JSON.stringify(this.documents);
     let httpHeaders: HttpHeaders = new HttpHeaders();
@@ -72,7 +73,7 @@ export class DocumentService {
 
     this.http.put(
       'https://wdd430-cms-project-default-rtdb.firebaseio.com/documents.json',
-      getList, {'headers': httpHeaders})
+      getList, { 'headers': httpHeaders })
       .subscribe(() => {
         let documentsCopy = this.documents.slice();
         this.documentListChangedEvent.next(documentsCopy);
@@ -80,7 +81,7 @@ export class DocumentService {
   }
 
   addDocument(newDoc: Document) {
-    if(newDoc === undefined || newDoc === null){
+    if (newDoc === undefined || newDoc === null) {
       return;
     }
     this.maxDocId++;
@@ -90,33 +91,33 @@ export class DocumentService {
     let documentsCopy = this.documents.slice();
     this.storeDocuments(documentsCopy);
   }
-  
-  updateDocument(originalDocument: Document, newDoc: Document){
-    if(!originalDocument || !newDoc){
+
+  updateDocument(originalDocument: Document, newDoc: Document) {
+    if (!originalDocument || !newDoc) {
       return;
     }
     let pos = this.documents.indexOf(originalDocument)
-    if(pos < 0){
+    if (pos < 0) {
       return;
     }
-    
+
     newDoc.id = originalDocument.id;
     this.documents[pos] = newDoc;
     let documentsCopy = this.documents.slice();
     this.storeDocuments(documentsCopy);
   }
-  
-    deleteDocument(document: Document) {
-      if (!document) {
-         return;
-      }
-      const pos = this.documents.indexOf(document);
-      if (pos < 0) {
-         return;
-      }
-      this.documents.splice(pos, 1);
-      let documentsCopy = this.documents.slice();
-      this.storeDocuments(documentsCopy);
-   }
+
+  deleteDocument(document: Document) {
+    if (!document) {
+      return;
+    }
+    const pos = this.documents.indexOf(document);
+    if (pos < 0) {
+      return;
+    }
+    this.documents.splice(pos, 1);
+    let documentsCopy = this.documents.slice();
+    this.storeDocuments(documentsCopy);
+  }
 
 }
