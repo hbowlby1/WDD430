@@ -1,25 +1,41 @@
 import { EventEmitter, Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { Document } from './document.model';
-import {MOCKDOCUMENTS} from './MOCKDOCUMENTS';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class DocumentService {
-  private documents: Document[];
+  documents: Document[] = [];
   documentSelectedEvent = new EventEmitter<Document>();
   documentChangedEvent = new EventEmitter<Document[]>();
   documentListChangedEvent = new Subject<Document[]>();
   maxDocId: number;
   currentDocId: number;
 
-  constructor() {
-    this.documents = MOCKDOCUMENTS;
-    this.maxDocId = this.getMaxId();
-   }
+  constructor(private http: HttpClient) {
 
+    http.get<Document[]>('https://wdd430-cms-project-default-rtdb.firebaseio.com/documents.json').subscribe(
+      (documents: Document[]) => {
+        this.documents = documents;
+        this.maxDocId = this.getMaxId();
+
+        this.documents.sort(function (a,b) {
+          if(a.name < b.name) {return -1}
+          else if (a.name > b.name) {return 1}
+          else {return 0}
+        });
+
+        let documentsListCopy = this.documents.slice();
+        this.documentListChangedEvent.next(documentsListCopy);
+      },
+      (error: any) => {
+        console.log(error);
+      }
+    );
+   }
 
   //gets the document array from Mockdocs and saves it to a new array
   getDocuments(): Document[]{
@@ -37,11 +53,11 @@ export class DocumentService {
   
   getMaxId(): number{
     this.maxDocId = 0;
-
+    
     for (let i = 0; i < this.documents.length; i++) {
       const document = this.documents[i];
       this.currentDocId = +document.id;
-
+      
       if (this.currentDocId > this.maxDocId) {
         this.maxDocId = this.currentDocId
       }
@@ -49,6 +65,20 @@ export class DocumentService {
     }
   }
   
+  storeDocuments(documents: Document[]) {
+    let getList = JSON.stringify(this.documents);
+    let httpHeaders: HttpHeaders = new HttpHeaders();
+    httpHeaders.set('Content-Type', 'application/json');
+
+    this.http.put(
+      'https://wdd430-cms-project-default-rtdb.firebaseio.com/documents.json',
+      getList, {'headers': httpHeaders})
+      .subscribe(() => {
+        let documentsCopy = this.documents.slice();
+        this.documentListChangedEvent.next(documentsCopy);
+      });
+  }
+
   addDocument(newDoc: Document) {
     if(newDoc === undefined || newDoc === null){
       return;
@@ -57,7 +87,8 @@ export class DocumentService {
     //id is saved as a string so we need to convert maxDocId to a string
     newDoc.id = this.maxDocId.toString();
     this.documents.push(newDoc);
-    this.documentListChangedEvent.next(this.documents.slice());
+    let documentsCopy = this.documents.slice();
+    this.storeDocuments(documentsCopy);
   }
   
   updateDocument(originalDocument: Document, newDoc: Document){
@@ -71,7 +102,8 @@ export class DocumentService {
     
     newDoc.id = originalDocument.id;
     this.documents[pos] = newDoc;
-    this.documentListChangedEvent.next(this.documents.slice());
+    let documentsCopy = this.documents.slice();
+    this.storeDocuments(documentsCopy);
   }
   
     deleteDocument(document: Document) {
@@ -83,6 +115,8 @@ export class DocumentService {
          return;
       }
       this.documents.splice(pos, 1);
-      this.documentListChangedEvent.next(this.documents.slice());
+      let documentsCopy = this.documents.slice();
+      this.storeDocuments(documentsCopy);
    }
+
 }

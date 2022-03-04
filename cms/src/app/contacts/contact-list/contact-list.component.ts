@@ -15,6 +15,7 @@ export class ContactListComponent implements OnInit, OnDestroy {
   //creating new array of contacts from contact.model.ts
   contacts: Contact[] = [];
   private subscription: Subscription;
+  term: string;
 
   constructor(private contactService: ContactService) {
 
@@ -28,6 +29,10 @@ export class ContactListComponent implements OnInit, OnDestroy {
         this.contacts = contact;
       }
     );
+  }
+
+  search(value: string){
+    this.term = value;
   }
 
   ngOnDestroy(): void {
