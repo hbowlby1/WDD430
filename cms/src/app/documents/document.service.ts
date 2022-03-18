@@ -1,122 +1,127 @@
-import { EventEmitter, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Subject } from 'rxjs';
 import { Document } from './document.model';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-
 
 @Injectable({
   providedIn: 'root'
 })
 export class DocumentService {
   documents: Document[] = [];
-  documentSelectedEvent = new EventEmitter<Document>();
-  documentChangedEvent = new EventEmitter<Document[]>();
+  maxDocumentId: number;
+  documentSelectedEvent = new Subject<Document>();
   documentListChangedEvent = new Subject<Document[]>();
-  maxDocId: number;
-  currentDocId: number;
 
   constructor(private http: HttpClient) {
-
+    this.getDocuments();
   }
 
-  //gets the document array from Mockdocs and saves it to a new array
-  getDocuments(): Document[] {
-    this.http.get<Document[]>('https://wdd430-cms-project-default-rtdb.firebaseio.com/documents.json').subscribe(
-      (documents: Document[]) => {
-        this.documents = documents;
-        this.maxDocId = this.getMaxId();
-
-        this.documents.sort(function (a, b) {
-          if (a.name < b.name) { return -1 }
-          else if (a.name > b.name) { return 1 }
-          else { return 0 }
-        });
-
-        let documentsListCopy = this.documents.slice();
-        this.documentListChangedEvent.next(documentsListCopy);
-      },
-      (error: any) => {
-        console.log(error);
-      }
-    );
-    return this.documents.slice();
+  getDocuments() {
+    this.http.get<Document[]>('http://localhost:3000/documents')
+    .subscribe( (documents: Document[]) => {
+      console.log("Documents: ", documents);
+      this.documents = documents;
+      this.maxDocumentId = this.getMaxId();
+      this.documents.sort();
+      this.documentListChangedEvent.next(this.documents.slice());
+    }, (error:any) => {
+      console.log(error);
+    })
   }
 
-  getDocument(id: string) {
-    for (const document of this.documents) {
-      if (document.id === id) {
-        return document;
-      }
-    }
-    return null;
+  sortAndSend() {
+    this.documents.sort();
+    this.documentListChangedEvent.next(this.documents.slice());
   }
 
-  getMaxId(): number {
-    this.maxDocId = 0;
-
-    for (let i = 0; i < this.documents.length; i++) {
-      const document = this.documents[i];
-      this.currentDocId = +document.id;
-
-      if (this.currentDocId > this.maxDocId) {
-        this.maxDocId = this.currentDocId
-      }
-      return this.maxDocId;
-    }
+  getDocument(id: string): Document {
+    return this.documents.find(document => document.id === id);
   }
 
-  storeDocuments(documents: Document[]) {
-    let getList = JSON.stringify(this.documents);
-    let httpHeaders: HttpHeaders = new HttpHeaders();
-    httpHeaders.set('Content-Type', 'application/json');
-
-    this.http.put(
-      'https://wdd430-cms-project-default-rtdb.firebaseio.com/documents.json',
-      getList, { 'headers': httpHeaders })
-      .subscribe(() => {
-        let documentsCopy = this.documents.slice();
-        this.documentListChangedEvent.next(documentsCopy);
-      });
-  }
-
-  addDocument(newDoc: Document) {
-    if (newDoc === undefined || newDoc === null) {
-      return;
-    }
-    this.maxDocId++;
-    //id is saved as a string so we need to convert maxDocId to a string
-    newDoc.id = this.maxDocId.toString();
-    this.documents.push(newDoc);
-    let documentsCopy = this.documents.slice();
-    this.storeDocuments(documentsCopy);
-  }
-
-  updateDocument(originalDocument: Document, newDoc: Document) {
-    if (!originalDocument || !newDoc) {
-      return;
-    }
-    let pos = this.documents.indexOf(originalDocument)
-    if (pos < 0) {
-      return;
-    }
-
-    newDoc.id = originalDocument.id;
-    this.documents[pos] = newDoc;
-    let documentsCopy = this.documents.slice();
-    this.storeDocuments(documentsCopy);
-  }
-
+  
   deleteDocument(document: Document) {
+
     if (!document) {
       return;
     }
-    const pos = this.documents.indexOf(document);
+
+    const pos = this.documents.findIndex(d => d.id === document.id);
+
     if (pos < 0) {
       return;
     }
-    this.documents.splice(pos, 1);
-    let documentsCopy = this.documents.slice();
-    this.storeDocuments(documentsCopy);
+
+    // delete from database
+    this.http.delete('http://localhost:3000/documents/' + document.id)
+      .subscribe(
+        (response: Response) => {
+          this.documents.splice(pos, 1);
+          this.sortAndSend();
+        }
+      );
+  }
+ 
+  getMaxId(): number {
+
+    let maxId = 0;
+
+    for(let document of this.documents) {
+        let currentId = +document.id; 
+        if (currentId > maxId) {
+            maxId = currentId
+        }
+    }
+    return maxId
   }
 
+  addDocument(document: Document) {
+    if (!document) {
+      return;
+    }
+
+    // make sure id of the new Document is empty
+    document.id = '';
+
+    const headers = new HttpHeaders({'Content-Type': 'application/json'});
+
+    // add to database
+    this.http.post<{ message: string, document: Document }>('http://localhost:3000/documents',
+      document,
+      { headers: headers })
+      .subscribe(
+        (responseData) => {
+          // add new document to documents
+          this.documents.push(responseData.document);
+          this.sortAndSend();
+        }
+      );
+  }
+
+  updateDocument(originalDocument: Document, newDocument: Document) {
+    if (!originalDocument || !newDocument) {
+      return;
+    }
+
+    const pos = this.documents.findIndex(d => d.id === originalDocument.id);
+
+    if (pos < 0) {
+      return;
+    }
+
+    // set the id of the new Document to the id of the old Document
+    newDocument.id = originalDocument.id;
+    newDocument._id = originalDocument._id;
+
+    const headers = new HttpHeaders({'Content-Type': 'application/json'});
+
+    // update database
+    this.http.put('http://localhost:3000/documents/' + originalDocument.id,
+      newDocument, { headers: headers })
+      .subscribe(
+        (response: Response) => {
+          this.documents[pos] = newDocument;
+          this.sortAndSend();
+        }
+      );
+  }
 }

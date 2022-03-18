@@ -1,8 +1,8 @@
-// Get dependencies
+var mongoose = require('mongoose');
 var express = require('express');
 var path = require('path');
 var http = require('http');
-var bodyParser = require('body-parser');
+
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
@@ -14,11 +14,25 @@ const messageRoutes = require('./server/routes/messages');
 const contactRoutes = require('./server/routes/contacts');
 const documentsRoutes = require('./server/routes/documents');
 
+// establish a connection to the mongo database
+
+mongoose.connect('mongodb://localhost:27017/cms',
+  { useNewUrlParser: true }, (err, res) => {
+    console.log('Attempting connection... ');
+    if (err) {
+      console.log('Connection failed: ' + err);
+    }
+    else {
+      console.log('Connected to database!');
+    }
+  }
+);
+
 var app = express(); // create an instance of express
 
 // Tell express to use the following parsers for POST data
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
+app.use(express.json());
+app.use(express.urlencoded({
   extended: false
 }));
 app.use(cookieParser());
@@ -45,14 +59,12 @@ app.use(express.static(path.join(__dirname, 'dist/cms')));
 
 // Tell express to map the default route ('/') to the index route
 app.use('/', index);
+
+// ... ADD YOUR CODE TO MAP YOUR URL'S TO ROUTING FILES HERE ...
 app.use('/messages', messageRoutes);
 app.use('/contacts', contactRoutes);
 app.use('/documents', documentsRoutes);
 
-// ... ADD YOUR CODE TO MAP YOUR URL'S TO ROUTING FILES HERE ...
-app.use(function(req,res, next){
-  res.render('index');
-});
 // Tell express to map all other non-defined routes back to the index page
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist/cms/index.html'));
@@ -66,6 +78,6 @@ app.set('port', port);
 const server = http.createServer(app);
 
 // Tell the server to start listening on the provided port
-server.listen(port, function() {
+server.listen(port, function () {
   console.log('API running on localhost: ' + port)
 });

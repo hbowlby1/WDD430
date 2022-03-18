@@ -1,5 +1,18 @@
+import { ObjectId } from "mongoose";
+
 export class Document {
+    public _id: ObjectId;
+    public id: string; 
+    public name: string;
+    public description: string;
+    public url: string;
+    public children: [];
 
-    constructor(public id: string, public name: string, public description: string, public url: string, children: Document[]) { }
-
+    constructor(id: string, name: string, description:string, url: string, children:[]) {
+        this.id = id;
+        this.name = name; 
+        this.description = description;
+        this.url = url;
+        this.children = children;
+    }
 }

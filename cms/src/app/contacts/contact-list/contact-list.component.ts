@@ -1,6 +1,15 @@
-import { Component, EventEmitter, Injectable, OnDestroy, OnInit, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  OnDestroy,
+  OnInit,
+  Output
+} from '@angular/core';
+import { Params } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { Contact } from '../contact.model';
+import {
+  Contact
+} from '../contact.model';
 import { ContactService } from '../contact.service';
 
 @Component({
@@ -8,34 +17,32 @@ import { ContactService } from '../contact.service';
   templateUrl: './contact-list.component.html',
   styleUrls: ['./contact-list.component.css']
 })
-
-
 export class ContactListComponent implements OnInit, OnDestroy {
-  // @Output() selectedContactEvent = new EventEmitter<Contact>();
-  //creating new array of contacts from contact.model.ts
   contacts: Contact[] = [];
-  private subscription: Subscription;
+  subscription: Subscription;
   term: string;
 
-  constructor(private contactService: ContactService) {
-
-  }
+  constructor(private contactService: ContactService) {}
 
   ngOnInit(): void {
-    this.contacts = this.contactService.getContacts();
-    this.subscription = this.contactService.contactListChangedEvent
-    .subscribe(
-      (contact: Contact[]) => {
-        this.contacts = contact;
+    this.contacts = this.contactService.contacts;
+    this.subscription = this.contactService.contactListChangedEvent.subscribe(
+      (contacts: Contact[]) => {
+        this.contacts = contacts;
       }
-    );
-  }
-
-  search(value: string){
-    this.term = value;
+    )
   }
 
   ngOnDestroy(): void {
-      this.subscription.unsubscribe();
+    this.subscription.unsubscribe();
   }
+
+  onSelected(contact: Contact) {
+    this.contactService.contactSelectedEvent.emit(contact);
+  }
+
+  search(value: string) {
+    this.term = value;
+  }
+
 }
